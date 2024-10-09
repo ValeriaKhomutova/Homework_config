@@ -1,0 +1,9 @@
+[user]
+name = "admin"
+computer = "admin"
+parametr = "test"
+
+[paths]
+vfs = "test.zip"
+log = "log.xml"
+start_script = "start.sh"
