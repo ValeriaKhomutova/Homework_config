@@ -1,16 +1,17 @@
 import os
 import xml.etree.ElementTree as ET
 import zipfile
-from datetime import datetime
-
+from calendar import TextCalendar
+from datetime import datetime, timedelta
+import io
 import toml
+import time
 
 
 class ShellEmulator:
     def __init__(self, config_path):
         """
         Initializes the ShellEmulator object from a configuration file.
-
         :param config_path: Path to the configuration file
         :type config_path: str
         """
@@ -23,6 +24,9 @@ class ShellEmulator:
         self.parametr = self.config["user"]["parametr"]
         self.current_path = "/"
         self.vfs = {}
+        self.hist = []
+        self.start = time.time()
+        self.start_ = datetime.now()
         self.load_vfs()
         self.create_log_file()
         self.run_start_script()
@@ -88,11 +92,9 @@ class ShellEmulator:
     def save_log(self):
         """
         Saves the log to the file specified in the configuration.
-
         This method writes the XML log tree to the file specified in the
         configuration. The log tree is an ElementTree object containing all
         logged actions.
-
         :return: None
         """
         self.log_tree.write(self.log_file)
@@ -112,25 +114,71 @@ class ShellEmulator:
         return f"{self.username}@{self.computer_name}:{self.current_path}$ "
 
     def execute(self, command):
-        if command.startswith("cd "):
+        if command.startswith("cd "):# 1
             self.cd(command[3:])
-        elif command == "ls":
+            self.hist.append(command)
+        elif command == "ls": # 1
             self.ls()
-        elif command == "exit":
+            self.hist.append(command)
+        elif command == "exit": # 1
             self.exit_shell()
-        elif command == "whoami":
+            self.hist.append(command)
+        elif command == "whoami": # 1
             self.whoami()
-        elif command == "tree":
+            self.hist.append(command)
+        elif command == "tree": # 1
             self.tree(self.current_path)
+            self.hist.append(command) 
+        elif command =="pwd": # 1
+            self.pwd()
+            self.hist.append(command)
+        elif command == "history": # 1
+            self.history()
+            self.hist.append(command)
+        elif command == "uptime": # 1
+            self.uptime()
+            self.hist.append(command)
         else:
             print(f"Command not found: {command}")
         self.log_action(command)
 
+    def history(self):
+        for command in self.hist:
+            print(command)
+            
+    def pwd(self):
+        print(self.current_path)
+
+    def uptime(self): 
+        print(datetime.now().strftime("%H:%M:%S"))
+        end = time.time() - self.start
+        time_format = time.strftime("%H:%M:%S", time.gmtime(end))
+        print(time_format)
+        print("1 user")
+        '''#22:20:33 up 620 days, 22:37,  1 user,  load average: 0.03, 0.10, 0.10
+        #22:20:33 — Текущее системное время.
+        #up 620 days, 22:37 — Продолжительность работы системы.
+        #1 user — количество вошедших в систему пользователей.
+        #load average: 0.03, 0.10, 0.10 — load average: 0.03, 0.10, 0.10 системы за последние 1, 5 и 15 минут.
+'''
     def cd(self, path):
-        if path in self.vfs:
-            self.current_path = path
+        #print(self.vfs)
+        if path == "..":
+            if self.current_path != '':
+                # os.path.dirname - возвращает имя директории по указанному пути
+                self.current_path = os.path.dirname(self.current_path.rstrip('/'))
+                print(f"Перешли на уровень выше: '{self.current_path}'")
         else:
-            print(f"No such directory: {path}")
+            path_prefix = (
+            path
+            if path.endswith("/")
+            else "/" + path + "/"
+            )
+            if path_prefix in self.vfs and self.current_path + path + "/" in self.vfs:
+                self.current_path = self.current_path + path + "/"
+                print(self.current_path)
+            else:
+                print(f"No such directory: {path}")
 
     def ls(self):
         contents = set()
@@ -154,8 +202,6 @@ class ShellEmulator:
     def tree(self, path, indent=""):
         # Ensure the current path ends with a '/'
         path_prefix = path if path.endswith("/") else path + "/"
-
-        # Track already printed directories to avoid recursion issues
         printed_dirs = set()
 
         for file in sorted(self.vfs):
@@ -175,6 +221,7 @@ class ShellEmulator:
 
     def whoami(self):
         print(self.username)
+    
 
     def exit_shell(self):
         self.log_action("session_end")
