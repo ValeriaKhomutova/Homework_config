@@ -89,7 +89,8 @@ def test_exit(shell_emulator):
     """Test the 'exit' command."""
     with pytest.raises(SystemExit):
         shell_emulator.execute("exit")
-        
+
+
 def test_history(shell_emulator,capsys):
     shell_emulator.execute("history")
     captured = capsys.readouterr()
