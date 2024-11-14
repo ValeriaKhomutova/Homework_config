@@ -2,8 +2,6 @@ import os
 import subprocess
 from datetime import datetime
 from typing import List, Tuple
-
-import yaml
 import xml.etree.ElementTree as ET
 from graphviz import Digraph
 from plantuml import PlantUML
@@ -30,20 +28,6 @@ def load_config_from_xml(config_file: str) -> dict:
     }
     
     return config
-
-'''def load_config(config_file: str) -> dict:
-    """
-    Load configuration from a YAML file.
-
-    Args:
-        config_file (str): Path to the YAML configuration file.
-
-    Returns:
-        dict: Parsed configuration data as a dictionary.
-    """
-    with open(config_file, "r") as file:
-        return yaml.safe_load(file)'''
-
 
 def get_commits(repo_path: str, since_date: str) -> List[Tuple[str, str]]:
     """
@@ -83,16 +67,7 @@ def get_commits(repo_path: str, since_date: str) -> List[Tuple[str, str]]:
     return commit_data[::-1]  # Reverse to have chronological order
 
 
-def build_dependency_graph(commits: List[Tuple[str, str]]) -> Digraph:
-    """
-    Build a dependency graph for commits using Graphviz.
-
-    Args:
-        commits (List[Tuple[str, str]]): List of commit hashes and dates in chronological order.
-
-    Returns:
-        Digraph: A Graphviz Digraph object representing the commit dependencies.
-    """
+def build_dependency_graph(commits: List[Tuple[str, str]]):
     dot = Digraph(comment="Git Commit Dependencies")
 
     for i, (commit, date) in enumerate(commits):
@@ -103,19 +78,6 @@ def build_dependency_graph(commits: List[Tuple[str, str]]) -> Digraph:
     return dot
 
 
-'''def save_graph(graph: Digraph, output_file: str) -> None:
-    """
-    Save the graph to a PNG file.
-
-    Args:
-        graph (Digraph): A Graphviz Digraph object to be saved.
-        output_file (str): Path to the output PNG file without extension.
-
-    Prints:
-        Success message after saving the file.
-    """
-    graph.render(output_file, format="png")
-    print(f"Success! The graph has been saved to {output_file}.png")'''
 def save_graph(graph: Digraph, output_file: str) -> None:
     """
     Save the dependency graph in PlantUML format and generate the diagram.
@@ -128,13 +90,6 @@ def save_graph(graph: Digraph, output_file: str) -> None:
 
     # Сохраняем узлы
     node_names = {}  # Для хранения отображения узлов
-    '''for line in graph.body:
-        if 'Commit' in line:
-            # Извлекаем имя узла из строки вида 'node "Commit: abc123"'
-            node_name = line.split('"')[1]  # Имя узла
-            node_id = line.split(' ')[-1]  # ID узла (например, i)
-            node_names[node_id] = node_name
-            plantuml_code += f'node "{node_name}" as {node_id}\n'''
     # Сохраняем связи
     for line in graph.body:
         if 'Commit' in line:
@@ -157,17 +112,6 @@ def save_graph(graph: Digraph, output_file: str) -> None:
     print(f"Graph saved in PlantUML format to {output_file}.puml")
 
     # Генерация диаграммы с использованием PlantUML
-    plantuml_server = PlantUML(url='http://localhost:8080/img/')
-    try:
-        result = plantuml_server.processes(f"{output_file}.puml")
-        print(f"Diagram generated from {output_file}.puml")
-    except Exception as e:
-        print(f"Failed to generate diagram: {str(e)}")
-        if hasattr(e, 'content'):
-            print(f"Response content: {e.content}")  # выводим содержимое ответа, если оно доступно
-        else:
-            print("Error without response content.")
-
 
 def main(config_file: str) -> None:
     """
