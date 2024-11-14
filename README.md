@@ -93,5 +93,5 @@ zip. Эмулятор работает в режиме CLI.
 
 
 ## Примеры использования
-![Screen](https://github.com/ValeriaKhomutova/Homework_config/blob/main/image.png)
+![Screen](https://github.com/ValeriaKhomutova/Homework_config/blob/main/gitdz/image_2dz.png)
 
